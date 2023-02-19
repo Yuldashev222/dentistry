@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
-from .models import CustomUser, Answer
+from .models import CustomUser, Answer, Order, Message
 
 admin.site.unregister(Group)
 
@@ -23,4 +23,20 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 @admin.register(Answer)
 class AnswerAdmin(admin.ModelAdmin):
-    list_display = ['order_id', 'client', 'file_format', 'file', 'date_created']
+    list_display = ['order', 'file_format', 'file', 'date_created']
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['number', 'file', 'client', 'date_created']
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ['answer', 'creator', 'date_created']
+    readonly_fields = ['creator']
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.creator = request.user
+        obj.save()

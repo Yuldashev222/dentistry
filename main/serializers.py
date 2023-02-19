@@ -1,7 +1,7 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers, exceptions
 
-from .models import CustomUser, Answer
+from .models import CustomUser, Answer, Order, Message
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -22,7 +22,25 @@ class AnswerSerializer(serializers.ModelSerializer):
         model = Answer
         fields = '__all__'
 
-    def validate_client(self, client):
-        if client.is_staff:
-            raise exceptions.ValidationError('select a client')
-        return client
+
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = '__all__'
+        read_only_fields = ['creator']
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        if not user.is_staff and user.id != attrs['answer'].order.client.id:
+            raise exceptions.NotFound({'answer': 'Not Found'})
+        return attrs
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'
+        read_only_fields = ['number', 'client']
+
+    def create(self, validated_data):
+        return Order.objects.create(**validated_data)

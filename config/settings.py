@@ -26,10 +26,13 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'phonenumber_field',
+    'django_filters',
+    'debug_toolbar',
     'main',
 ]
 
 MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -114,6 +117,8 @@ MEDIA_ROOT = BASE_DIR / 'media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'main.CustomUser'
+
+INTERNAL_IPS = ['127.0.0.1']
 
 REST_FRAMEWORK = {
     # Base API policies

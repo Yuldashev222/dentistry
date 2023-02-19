@@ -1,12 +1,14 @@
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.password_validation import validate_password
-from django.db import models
+from random import sample
+
 from django.apps import apps
+from datetime import datetime
+from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.hashers import make_password
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinValueValidator
+from django.contrib.auth.base_user import BaseUserManager
 from phonenumber_field.modelfields import PhoneNumberField
+from django.contrib.auth.password_validation import validate_password
 
 
 class CustomUserManager(BaseUserManager):
@@ -50,23 +52,65 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()
 
 
-class Answer(models.Model):
-    order_id = models.PositiveSmallIntegerField(validators=[MinValueValidator(1000)])
-    title = models.CharField(max_length=400, blank=True)
+class Order(models.Model):
+    number = models.IntegerField(verbose_name=_('Order ID'))
+    title = models.CharField(max_length=200)
+    text = models.TextField()
+    file = models.FileField(upload_to='files/', blank=True)
     client = models.ForeignKey(
         CustomUser,
         on_delete=models.SET_NULL, null=True,
         limit_choices_to={'is_staff': False}
     )
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        number = int(''.join(map(str, sample(range(1, 10), 8))))
+        while Order.objects.filter(number=number).exists():
+            number = int(''.join(map(str, sample(range(1, 10), 8))))
+        setattr(self, 'number', number)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return str(self.number)
+
+    class Meta:
+        verbose_name = _("order")
+        verbose_name_plural = _("orders")
+
+
+class Answer(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    title = models.CharField(max_length=400, blank=True)
     text = models.TextField(blank=True)
     file_format = models.CharField(max_length=100)
     file = models.FileField(upload_to='files/')
     comment = models.CharField(max_length=500)
     date_created = models.DateTimeField(auto_now_add=True)
 
+    creator = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL, null=True,
+        limit_choices_to={'is_staff': True}
+    )
+
     def __str__(self):
-        return f"{self.order_id}: {self.client.USERNAME_FIELD}"
+        return f"{self.order}"
 
     class Meta:
         verbose_name = _("svarar")
         verbose_name_plural = _("svarars")
+
+
+class Message(models.Model):
+    answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
+    text = models.CharField(max_length=400)
+    creator = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.text
+
+    class Meta:
+        verbose_name = _("message")
+        verbose_name_plural = _("messages")
