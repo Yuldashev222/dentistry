@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,8 +26,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'multiselectfield',
     'phonenumber_field',
-    'django_filters',
     'debug_toolbar',
     'main',
 ]
@@ -47,8 +48,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -123,8 +123,7 @@ INTERNAL_IPS = ['127.0.0.1']
 REST_FRAMEWORK = {
     # Base API policies
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication'
+        'rest_framework_simplejwt.authentication.JWTAuthentication'
     ],
 
     'DEFAULT_PERMISSION_CLASSES': [],
@@ -133,7 +132,7 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [],
 
     # Pagination
-    'PAGE_SIZE': 20,
+    'PAGE_SIZE': 10,
 
     # Filtering
     'SEARCH_PARAM': 'search',
@@ -156,4 +155,8 @@ REST_FRAMEWORK = {
 
     'TIME_FORMAT': '%H:%M',
     'TIME_INPUT_FORMATS': '%H:%M'
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=10)
 }
